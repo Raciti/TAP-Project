@@ -1,0 +1,168 @@
+version: '3'
+services:
+
+  logstash:
+    build:
+      context: logstash
+      dockerfile: Dockerfile
+    image: logstash
+    volumes: 
+      - ./logstash/pipeline/:/usr/share/logstash/pipeline/
+    environment: 
+      - "LS_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "xpack.monitoring.enabled:true"
+      - "xpack.monitoring.elasticsearch.url:http://localhost:9200"
+    ports:
+      - "10155:10155"
+    networks:
+      - royale-network
+
+
+
+  royale-server:
+    container_name: royale-server-container
+    build:
+      context: server
+      dockerfile: Dockerfile
+    image: royale-server
+    ports: 
+      - "8000:8000"
+    networks:
+      - royale-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - royale-network
+
+  #-------------------------------#
+  # 🖥 Kafka                      #
+  #-------------------------------#
+  kafkaserver:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: kafkaserver
+    hostname: kafkaserver
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafkaserver:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - royale-network
+
+  #-------------------------------#
+  # 🖥 Kafka UI                   #
+  #-------------------------------#
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    depends_on:
+      - zookeeper
+      - kafkaserver
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafkaserver:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+        - royale-network
+
+  #-------------------------------#
+  # 🖥 Init Kafka                 #
+  #-------------------------------#
+  init-kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    networks:
+      - royale-network
+    depends_on:
+      - kafkaserver
+      - zookeeper
+      - kafka-ui
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafkaserver:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafkaserver:9092 --create --if-not-exists --topic clahsroyale --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafkaserver:9092 --list
+      "
+
+  spark:
+    build: 
+      context: Spark
+    container_name: sparkcontainer
+    depends_on: 
+      - kafkaserver
+      - logstash
+      - elasticsearch
+    restart: on-failure
+    networks: 
+      - royale-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4g
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"      
+    environment:
+      - node.name=elasticsearch
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks: 
+    - royale-network
+
+networks:
+  royale-network:
+    name: royale-network
+    driver: bridge 
+
+
+
+
+# localhost 8080
+
+
+# docker-compose up
+# docker-compose down
+# 2 volte control + c 
+# docker system prune -a
+
+
+# Per vedere tutte le immagini 
+#  docker image ls
+#  selezioni il codice corrispodnente e corrente
+#  docker rmi -f tag
