@@ -11,7 +11,7 @@ Per provare il progetto basta scaricare la repo e eseguire
 ## Link Utilizzabili
 |Servizio|URL| 
 |:---:|---:|
-|Simulatore chiaate API| http://localhost:8000/return-log|
+|Simulatore chiamate API| http://localhost:8000/return-log|
 |ElasticSearch|http://localhost:9200|
 |Kibana|http://localhost:5601|
 
