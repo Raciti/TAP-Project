@@ -2,7 +2,7 @@
 Lo scopo di questo progetto è quello di creare un classificatore real-time che sia in grado di classificare i match di clash royale indicando se il match è stato interessante o non interessante.
 
 ## PipeLine
-![](./book/images/pipe.png =750x750)
+![](./book/images/pipe.png | width=250)
 
 ## Utilizzo
 Per provare il progetto basta scaricare la repo e eseguire 
