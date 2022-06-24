@@ -1,4 +1,5 @@
 from flask import Flask, json
+from datetime import date, datetime
 # cd Desktop/Università/III°\ Anno/II°\ Semestre/TAP/Progetto/
 tapserver = Flask(__name__)
 
@@ -32,16 +33,15 @@ for i in range(dim):
 @tapserver.route("/return-log")
 
 def return_log():    
-    send = [TagPlayer.pop(),
-            BattleTime.pop(),
-            Crown.pop(),
-            KingTower.pop(),
-            LeftPrincess.pop(),
-            RigthPrincess.pop(),
-            CrownOpponent.pop(),
-            KingTowerOpponent.pop(),
-            LeftPrincessOpponent.pop(),
-            RigthPrincessOpponent.pop()]
+    send = { 'timestamp' : datetime.now().isoformat(),
+            'Crown' : Crown.pop(),
+            'KingTower' : KingTower.pop(),
+            'LeftPrincess': LeftPrincess.pop(),
+            'RigthPrincess' : RigthPrincess.pop(),
+            'CrownOpponent' : CrownOpponent.pop(),
+            'KingTowerOpponent' : KingTowerOpponent.pop(),
+            'LeftPrincessOpponent' : LeftPrincessOpponent.pop(),
+            'RigthPrincessOpponent' : RigthPrincessOpponent.pop()}
     
     
     send_json = json.dumps(send)
