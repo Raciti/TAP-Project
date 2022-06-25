@@ -135,10 +135,7 @@ if __name__ == '__main__':
     main()
 
 """
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-export PATH=$PATH:$JAVA_HOME/bin
-
-
+Per far funzionare la creazione del modello bisogna impostare correttamente le JAVA_HOME, nel mio caso è stata impostata in questo modo
 export JAVA_HOME="/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/"
 export PATH=$PATH:$JAVA_HOME/bin
 """
