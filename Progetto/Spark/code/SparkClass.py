@@ -80,9 +80,6 @@ clashKafka = tp.StructType([
 
 
 
-"""sc = SparkContext(appName="TapSentiment")
-spark = SparkSession(sc)
-sc.setLogLevel("WARN")"""
 
 # Streaming Query
 df = spark \
@@ -99,97 +96,16 @@ df = df.selectExpr("CAST(timestamp AS STRING)","CAST(value AS STRING)")\
         .select(from_json("value", clashKafka).alias("data"))\
         .select("data.*")
 
-### AGGIUNTA
-print("____________________________________________________________________")
+
 results = model.transform(df)
 
-"""results.writeStream \
-    .format("console") \
-    .outputMode("append") \
-    .start() \
-    .awaitTermination()
 
-print(type(results))"""
-
-"""results.writeStream \
-    .foreachBatch(process_batch) \
-    .start() \
-    .awaitTermination()
-
-results = results.writeStream \
-            .foreachBatch(process_batch)\
-            .start()
-
-results.awaitTermination()
-
-"""
 
 results = results.drop("features", "scaled_features","rawPrediction")
 
-"""results.writeStream \
-    .format("console") \
-    .outputMode("append") \
-    .start() \
-    .awaitTermination()
-
-print(results.select("predition"))"""
-
 
 results = results.writeStream \
     .foreachBatch(process_batch) \
     .start()
 
 results.awaitTermination()
-
-### Rimossi per la prova 
-"""
-df = df.writeStream \
-    .foreachBatch(process_batch) \
-    .start()
-
-df.awaitTermination()
-"""
-#####################################
-
-
-"""APP_NAME = 'ha-streaming-prediction'
-APP_BATCH_INTERVAL = 1
-
-def get_record_schema():
-    return st.StructType([
-        st.StructField( 'timestamp',  st.StringType()),
-        st.StructField( 'Crown',  st.IntegerType()),
-        st.StructField('KingTower',  st.IntegerType()),
-        st.StructField('LeftPrincess', st.IntegerType()),
-        st.StructField( 'RigthPrincess',  st.IntegerType()),
-        st.StructField('CrownOpponent', st.IntegerType()),
-        st.StructField( 'KingTowerOpponent', st.IntegerType()),
-        st.StructField( 'LeftPrincessOpponent', st.IntegerType()),
-        st.StructField('RigthPrincessOpponent', st.IntegerType()),
-    ])
-
-
-def main():
-
-    spark = SparkSession.builder.appName(APP_NAME).getOrCreate()
-    spark.sparkContext.setLogLevel("ERROR")
-
-    model = PipelineModel.load("model")
-    schema = get_record_schema()
-
-    df = spark.readStream.format('kafka') \
-        .option('kafka.bootstrap.servers', 'broker:29092') \
-        .option('subscribe', 'cardiology') \
-        .load() \
-        .select(from_json(col("value").cast("string"), schema).alias("data")) \
-        .selectExpr("data.*")
-
-    results = model.transform(df)
-    results.writeStream \
-        .format("console") \
-        .outputMode("append") \
-        .start() \
-        .awaitTermination()
-
-
-if __name__ == '__main__': main()"""
