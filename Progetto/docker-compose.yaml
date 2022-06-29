@@ -168,20 +168,3 @@ networks:
   royale-network:
     name: royale-network
     driver: bridge 
-
-
-
-
-# localhost 8080
-
-
-# docker-compose up
-# docker-compose down
-# 2 volte control + c 
-# docker system prune -a
-
-
-# Per vedere tutte le immagini 
-#  docker image ls
-#  selezioni il codice corrispodnente e corrente
-#  docker rmi -f tag
